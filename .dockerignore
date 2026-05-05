@@ -1,0 +1,65 @@
+# Maven build artifacts
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Maven wrapper (use system maven instead)
+mvnw
+mvnw.cmd
+.mvn/
+
+# Gradle wrapper (use system gradle instead)
+gradlew
+gradlew.bat
+gradle/wrapper/
+.gradle/
+build/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+README*
+LICENSE
+CONTRIBUTING*
+CODEOWNERS
+
+# Test files
+src/test/
+
+# Migration artifacts
+migration-bundle/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.bak
+*.cache
