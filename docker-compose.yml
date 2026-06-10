@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  modresorts:
+    image: modresorts:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: modresorts-app
+    ports:
+      - "9080:9080"
+    environment:
+      - TZ=UTC
+      - JAVA_OPTS=-Xmx512m -Xms256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+      - WEATHER_API_KEY=${WEATHER_API_KEY:-}
+      - SERVER_DISPLAY_NAME=${SERVER_DISPLAY_NAME:-modresorts-container}
+      - SERVER_FULL_NAME=${SERVER_FULL_NAME:-modresorts-container-01}
+    volumes:
+      - ./config:/app/config
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

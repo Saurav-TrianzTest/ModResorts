@@ -1,8 +1,6 @@
 package com.acme.modres.db;
 
 import javax.annotation.Resource;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,8 +8,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-@Singleton
-@Startup
+// Replaced WebSphere/EJB @Singleton + @Startup with Spring @Component
+// for container-native deployment on AWS ECS/EKS. Distributed state should
+// be managed via Amazon ElastiCache (Redis) with Spring Cache abstraction
+// to ensure consistency across horizontally scaled container instances.
+import org.springframework.stereotype.Component;
+
+@Component
 public class ModResortsCustomerInformation {
   private static final String SELECT_CUSTOMERS_QUERY = "SELECT INFO FROM CUSTOMER";
 

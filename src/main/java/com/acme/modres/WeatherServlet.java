@@ -250,29 +250,26 @@ public class WeatherServlet extends HttpServlet {
   }
 
   private String configureEnvDiscovery() {
-
+    // Replaced WebSphere-specific com.ibm.websphere.runtime.ServerName with
+    // environment variables for container-native deployment on AWS ECS/EKS
     String serverEnv = "";
-
-    serverEnv += com.ibm.websphere.runtime.ServerName.getDisplayName();
-    serverEnv += com.ibm.websphere.runtime.ServerName.getFullName();
-
+    String serverDisplayName = System.getenv("SERVER_DISPLAY_NAME");
+    String serverFullName = System.getenv("SERVER_FULL_NAME");
+    serverEnv += (serverDisplayName != null ? serverDisplayName : "");
+    serverEnv += (serverFullName != null ? serverFullName : "");
     return serverEnv;
   }
 
   private InitialContext setInitialContextProps() {
-
-    Hashtable ht = new Hashtable();
-
-    ht.put("java.naming.factory.initial", "com.ibm.websphere.naming.WsnInitialContextFactory");
-    ht.put("java.naming.provider.url", "corbaloc:iiop:localhost:2809");
-
+    // Replaced WebSphere-specific RMI/IIOP naming (WsnInitialContextFactory + corbaloc:iiop)
+    // with standard JNDI InitialContext for container-native deployment on AWS ECS/EKS.
+    // Service discovery is handled via environment variables and Spring Cloud / AWS Cloud Map.
     InitialContext ctx = null;
     try {
-      ctx = new InitialContext(ht);
+      ctx = new InitialContext();
     } catch (NamingException e) {
       e.printStackTrace();
     }
-
     return ctx;
   }
 }
