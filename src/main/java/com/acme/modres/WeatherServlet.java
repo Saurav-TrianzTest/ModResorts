@@ -248,30 +248,33 @@ public class WeatherServlet extends HttpServlet {
     return "*********" + lastToKeep;
   }
 
+  /**
+   * Configures environment discovery using standard Java system properties.
+   * Replaced IBM WebSphere-specific com.ibm.websphere.runtime.ServerName API
+   * with standard Java system properties for Java 17 compatibility.
+   */
   private String configureEnvDiscovery() {
-
     String serverEnv = "";
-
-    serverEnv += com.ibm.websphere.runtime.ServerName.getDisplayName();
-    serverEnv += com.ibm.websphere.runtime.ServerName.getFullName();
-
+    // Replaced com.ibm.websphere.runtime.ServerName.getDisplayName() and
+    // com.ibm.websphere.runtime.ServerName.getFullName() with standard Java
+    // system properties for Java 17 / Liberty compatibility
+    serverEnv += System.getProperty("wlp.server.name", "");
+    serverEnv += System.getProperty("wlp.user.dir", "");
     return serverEnv;
   }
 
   private InitialContext setInitialContextProps() {
-
-    Hashtable<String, String> ht = new Hashtable<>();
-
-    ht.put("java.naming.factory.initial", "com.ibm.websphere.naming.WsnInitialContextFactory");
-    ht.put("java.naming.provider.url", "corbaloc:iiop:localhost:2809");
-
+    // Replaced com.ibm.websphere.naming.WsnInitialContextFactory with standard
+    // JNDI InitialContext for Java 17 / Liberty compatibility.
+    // The WsnInitialContextFactory is an IBM WebSphere-specific JNDI factory
+    // that is not available outside of WebSphere/Liberty runtime.
+    // Using standard InitialContext which works with Liberty's built-in JNDI.
     InitialContext ctx = null;
     try {
-      ctx = new InitialContext(ht);
+      ctx = new InitialContext();
     } catch (NamingException e) {
       e.printStackTrace();
     }
-
     return ctx;
   }
 }

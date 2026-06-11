@@ -15,14 +15,6 @@
     <project.version>2.0.0</project.version>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
-  <repositories>
-    <!-- IBM WebSphere Liberty Maven repository for was_public artifact -->
-    <repository>
-      <id>ibm-maven-repo</id>
-      <name>IBM Maven Repository</name>
-      <url>https://public.dhe.ibm.com/ibmdl/export/pub/software/websphere/wasdev/maven/repository/</url>
-    </repository>
-  </repositories>
   <dependencies>
     <!-- Updated from javaee-api 7.0 to Jakarta EE 10 for Java 17 compatibility -->
     <dependency>
@@ -31,11 +23,18 @@
       <version>10.0.0</version>
       <scope>provided</scope>
     </dependency>
-    <!-- IBM WebSphere Application Server public API - provided by the server at runtime -->
+    <!-- IBM WebSphere Liberty Servlet API - replaces was_public for servlet-related IBM APIs -->
     <dependency>
-      <groupId>com.ibm.websphere.appserver</groupId>
-      <artifactId>was_public</artifactId>
-      <version>9.0.0</version>
+      <groupId>com.ibm.websphere.appserver.api</groupId>
+      <artifactId>com.ibm.websphere.appserver.api.servlet</artifactId>
+      <version>1.1.102</version>
+      <scope>provided</scope>
+    </dependency>
+    <!-- IBM WebSphere Liberty Security API - replaces was_public for security-related IBM APIs -->
+    <dependency>
+      <groupId>com.ibm.websphere.appserver.api</groupId>
+      <artifactId>com.ibm.websphere.appserver.api.security</artifactId>
+      <version>1.3.102</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -46,6 +45,12 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
+      <version>5.10.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
       <version>5.10.0</version>
       <scope>test</scope>
     </dependency>
@@ -151,11 +156,28 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.1.2</version>
         <configuration>
-          <argLine>
-            --add-opens java.base/java.lang=ALL-UNNAMED
-            --add-opens java.base/java.util=ALL-UNNAMED
-          </argLine>
+          <argLine>@{argLine} --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED</argLine>
         </configuration>
+      </plugin>
+      <!-- JaCoCo plugin for code coverage -->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.11</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

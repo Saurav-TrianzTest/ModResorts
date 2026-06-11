@@ -9,8 +9,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.ibm.websphere.servlet.response.ResponseUtils;
-
 @WebServlet("/resorts/upper")
 public class UpperServlet extends HttpServlet {
 
@@ -26,9 +24,27 @@ public class UpperServlet extends HttpServlet {
     }
 
     String newStr = originalStr.toUpperCase();
-    newStr = ResponseUtils.encodeDataString(newStr);
+    // Replaced com.ibm.websphere.servlet.response.ResponseUtils.encodeDataString()
+    // with standard Java HTML encoding for Java 17 compatibility
+    newStr = encodeHtml(newStr);
 
     PrintWriter out = response.getWriter();
     out.print("<br/><b>upper case input " + newStr + "</b>");
+  }
+
+  /**
+   * Encodes a string for safe HTML output by escaping special HTML characters.
+   * This replaces the IBM WebSphere ResponseUtils.encodeDataString() method.
+   */
+  private String encodeHtml(String input) {
+    if (input == null) {
+      return "";
+    }
+    return input
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\"", "&quot;")
+        .replace("'", "&#x27;");
   }
 }
