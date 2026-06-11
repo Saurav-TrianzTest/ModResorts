@@ -6,19 +6,19 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.logging.Logger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import javax.naming.InitialContext;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.acme.modres.mbean.IOUtils;
 import com.acme.modres.mbean.reservation.DateChecker;
@@ -32,8 +32,6 @@ public class AvailabilityCheckerServlet extends HttpServlet {
   private static final long serialVersionUID = 1L;
 
   private static final Logger logger = Logger.getLogger(AvailabilityCheckerServlet.class.getName());
-
-  private static InitialContext context;
 
   private ReservationCheckerData reservationCheckerData;
 
