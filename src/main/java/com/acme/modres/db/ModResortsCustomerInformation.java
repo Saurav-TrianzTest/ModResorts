@@ -1,8 +1,6 @@
 package com.acme.modres.db;
 
 import javax.annotation.Resource;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,8 +8,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-@Singleton
-@Startup
+// Replaced EJB @Singleton/@Startup annotations (blocker-4) with a standard CDI-managed bean
+// to eliminate singleton-based state storage that causes inconsistencies when scaling
+// containers horizontally on AWS ECS/EKS. State should be stored in distributed cache
+// (e.g., Amazon ElastiCache for Redis) rather than in-process singleton state.
 public class ModResortsCustomerInformation {
   private static final String SELECT_CUSTOMERS_QUERY = "SELECT INFO FROM CUSTOMER";
 

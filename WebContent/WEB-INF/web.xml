@@ -4,6 +4,10 @@
     <session-timeout>30</session-timeout>
   </session-config>
   <servlet>
+    <servlet-name>HealthCheckServlet</servlet-name>
+    <servlet-class>com.acme.modres.HealthCheckServlet</servlet-class>
+  </servlet>
+  <servlet>
     <servlet-name>WeatherServlet</servlet-name>
     <servlet-class>com.acme.modres.WeatherServlet</servlet-class>
   </servlet>
@@ -19,6 +23,10 @@
     <servlet-name>UpperServlet</servlet-name>
     <servlet-class>com.acme.modres.UpperServlet</servlet-class>
   </servlet>
+  <servlet-mapping>
+    <servlet-name>HealthCheckServlet</servlet-name>
+    <url-pattern>/health</url-pattern>
+  </servlet-mapping>
   <servlet-mapping>
     <servlet-name>WeatherServlet</servlet-name>
     <url-pattern>/weather</url-pattern>

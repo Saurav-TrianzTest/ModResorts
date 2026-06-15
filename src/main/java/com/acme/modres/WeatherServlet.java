@@ -13,7 +13,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
-import java.util.Hashtable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,8 +52,6 @@ public class WeatherServlet extends HttpServlet {
 
   private static final Logger logger = Logger.getLogger(WeatherServlet.class.getName());
 
-  private static InitialContext context;
-
   MBeanServer server;
   ObjectName weatherON;
   ObjectInstance mbean;
@@ -75,7 +72,6 @@ public class WeatherServlet extends HttpServlet {
     } catch (InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException e) {
       e.printStackTrace();
     }
-    context = setInitialContextProps();
   }
 
   @Override
@@ -249,26 +245,47 @@ public class WeatherServlet extends HttpServlet {
     return "*********" + lastToKeep;
   }
 
+  /**
+   * Replaced WebSphere-specific com.ibm.websphere.runtime.ServerName API (blocker-3, blocker-8, blocker-9, blocker-10)
+   * with environment variable-based server discovery for container-native deployment on AWS ECS/EKS.
+   * Removed RMI/IIOP-based WsnInitialContextFactory JNDI lookup (blocker-5) and replaced
+   * with environment variable-driven configuration.
+   */
   private String configureEnvDiscovery() {
+    // Replaced com.ibm.websphere.runtime.ServerName.getDisplayName() and getFullName()
+    // with environment variables for container-native server identification (blocker-3, blocker-8, blocker-9, blocker-10)
+    String serverDisplayName = System.getenv("SERVER_DISPLAY_NAME") != null
+        ? System.getenv("SERVER_DISPLAY_NAME") : "modresorts-server";
+    String serverFullName = System.getenv("SERVER_FULL_NAME") != null
+        ? System.getenv("SERVER_FULL_NAME") : "modresorts-server/default";
 
     String serverEnv = "";
-
-    serverEnv += com.ibm.websphere.runtime.ServerName.getDisplayName();
-    serverEnv += com.ibm.websphere.runtime.ServerName.getFullName();
+    serverEnv += serverDisplayName;
+    serverEnv += serverFullName;
 
     return serverEnv;
   }
 
+  /**
+   * Replaced WebSphere RMI/IIOP WsnInitialContextFactory JNDI lookup (blocker-5)
+   * with standard InitialContext using environment variable-based configuration
+   * for container-native service discovery on AWS ECS/EKS.
+   */
   private InitialContext setInitialContextProps() {
-
-    Hashtable ht = new Hashtable();
-
-    ht.put("java.naming.factory.initial", "com.ibm.websphere.naming.WsnInitialContextFactory");
-    ht.put("java.naming.provider.url", "corbaloc:iiop:localhost:2809");
+    // Replaced com.ibm.websphere.naming.WsnInitialContextFactory and corbaloc:iiop RMI lookup
+    // with environment variable-driven JNDI configuration (blocker-5)
+    String jndiProviderUrl = System.getenv("JNDI_PROVIDER_URL") != null
+        ? System.getenv("JNDI_PROVIDER_URL") : "";
 
     InitialContext ctx = null;
     try {
-      ctx = new InitialContext(ht);
+      if (jndiProviderUrl != null && !jndiProviderUrl.isEmpty()) {
+        java.util.Hashtable<String, String> ht = new java.util.Hashtable<>();
+        ht.put("java.naming.provider.url", jndiProviderUrl);
+        ctx = new InitialContext(ht);
+      } else {
+        ctx = new InitialContext();
+      }
     } catch (NamingException e) {
       e.printStackTrace();
     }
