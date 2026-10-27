@@ -1,51 +1,41 @@
 package com.acme.modres.mbean;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 import com.acme.modres.mbean.reservation.ReservationList;
 import com.acme.modres.util.JsonInputStream;
 
 public final class IOUtils {
 
-  public static File getFileFromRelativePath(String path) {
-    File file = null;
+  public static InputStream getFileFromRelativePath(String path) {
     InputStream initialStream = null;
-    OutputStream outStream = null;
     try {
       initialStream = IOUtils.class.getClassLoader().getResourceAsStream(path);
+      if (initialStream == null) {
+        return null;
+      }
       byte[] buffer = new byte[initialStream.available()];
       initialStream.read(buffer);
-
-      file = File.createTempFile(path, null);
-      outStream = new FileOutputStream(file);
-      outStream.write(buffer);
-      outStream.close();
+      return new java.io.ByteArrayInputStream(buffer);
     } catch (Exception e) {
       e.printStackTrace();
-    } finally {
       if (initialStream != null) {
         try {
           initialStream.close();
-        } catch (IOException e) {
-        }
-      } else if (outStream != null) {
-        try {
-          outStream.close();
-        } catch (IOException e) {
+        } catch (IOException ex) {
         }
       }
+      return null;
     }
-
-    return file;
   }
 
   public static OpMetadataList getOpListFromConfig() {
-    File file = getFileFromRelativePath("ops.json"); // fix hardcoded paths
-    try (JsonInputStream is = new JsonInputStream(file)) {
+    InputStream inputStream = getFileFromRelativePath("ops.json");
+    if (inputStream == null) {
+      return null;
+    }
+    try (JsonInputStream is = new JsonInputStream(inputStream)) {
       OpMetadataList opList = new OpMetadataList(); // empty default
       opList = (OpMetadataList) is.parseJsonAs(OpMetadataList.class);
       return opList;
@@ -56,8 +46,11 @@ public final class IOUtils {
   }
 
   public static ReservationList getReservationListFromConfig() {
-    File file = getFileFromRelativePath("reservations.json"); // fix hardcoded paths
-    try (JsonInputStream is = new JsonInputStream(file)) {
+    InputStream inputStream = getFileFromRelativePath("reservations.json");
+    if (inputStream == null) {
+      return null;
+    }
+    try (JsonInputStream is = new JsonInputStream(inputStream)) {
       ReservationList reservationList = new ReservationList(); // empty default
       reservationList = (ReservationList) is.parseJsonAs(ReservationList.class);
       return reservationList;

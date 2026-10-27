@@ -4,8 +4,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.ibm.websphere.security.WSSecurityHelper;
+import javax.servlet.http.HttpSession;
 
 import java.io.IOException;
 
@@ -17,11 +16,10 @@ public class LogoutServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request,
       HttpServletResponse response) throws IOException {
 
-    try {
-      WSSecurityHelper.revokeSSOCookies(request, response);
-    } catch (Exception e) {
-      System.err.println("[ERROR] Error logging out");
-      e.printStackTrace();
+    // Invalidate session for logout (replaces WebSphere WSSecurityHelper)
+    HttpSession session = request.getSession(false);
+    if (session != null) {
+      session.invalidate();
     }
 
     response.sendRedirect("login.jsp");

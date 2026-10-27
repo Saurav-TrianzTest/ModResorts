@@ -5,7 +5,7 @@
   <groupId>com.acme.modres</groupId>
   <artifactId>modresorts</artifactId>
   <version>2.0.0</version>
-  <packaging>war</packaging>
+  <packaging>jar</packaging>
   <name>ModResorts</name>
   <properties>
     <maven.compiler.target>1.8</maven.compiler.target>
@@ -19,12 +19,6 @@
       <groupId>javax</groupId>
       <artifactId>javaee-api</artifactId>
       <version>7.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.ibm.websphere.appserver</groupId>
-      <artifactId>was_public</artifactId>
-      <version>9.0.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -85,22 +79,36 @@
       <version>2.9.10</version>
     </dependency>
 
+    <!-- Azure SDK dependencies for cloud migration (cr-java-0061, cr-java-0062, cr-java-0063, cr-java-0111, cr-java-0112, cr-java-0113) -->
+    <dependency>
+      <groupId>com.azure</groupId>
+      <artifactId>azure-storage-blob</artifactId>
+      <version>12.36.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.azure</groupId>
+      <artifactId>azure-identity</artifactId>
+      <version>1.18.7</version>
+    </dependency>
+    <dependency>
+      <groupId>com.azure</groupId>
+      <artifactId>azure-security-keyvault-secrets</artifactId>
+      <version>4.11.3</version>
+    </dependency>
+    <dependency>
+      <groupId>com.azure</groupId>
+      <artifactId>azure-messaging-servicebus</artifactId>
+      <version>7.18.1</version>
+    </dependency>
+
   </dependencies>
   <build>
     <plugins>
       <plugin>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>3.1.0</version>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.3.0</version>
         <configuration>
-          <failOnMissingWebXml>false</failOnMissingWebXml>
-          <packagingExcludes>pom.xml, src/, target/, WebContent/</packagingExcludes>
-          <warSourceDirectory>WebContent</warSourceDirectory>
-          <webResources>
-            <resource>
-              <directory>src/main/resources</directory>
-              <targetPath>WEB-INF/classes</targetPath>
-            </resource>
-          </webResources>
+          <includeWebXml>false</includeWebXml>
         </configuration>
       </plugin>
       <plugin>
@@ -109,15 +117,21 @@
         <executions>
           <execution>
             <id>copy-resources</id>
-            <phase>package</phase>
+            <phase>process-resources</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>${project.build.directory}</outputDirectory>
+              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
               <resources>
                 <resource>
                   <directory>src/main/resources</directory>
+                </resource>
+                <resource>
+                  <directory>WebContent</directory>
+                  <includes>
+                    <include>**/*</include>
+                  </includes>
                 </resource>
               </resources>
             </configuration>

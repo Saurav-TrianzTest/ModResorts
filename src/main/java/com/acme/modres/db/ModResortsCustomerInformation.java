@@ -1,8 +1,6 @@
 package com.acme.modres.db;
 
 import javax.annotation.Resource;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,14 +8,24 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-@Singleton
-@Startup
 public class ModResortsCustomerInformation {
   private static final String SELECT_CUSTOMERS_QUERY = "SELECT INFO FROM CUSTOMER";
+
+  private static ModResortsCustomerInformation instance;
 
   // Removing DB connection for ease of demo setup
   // @Resource(lookup = "jdbc/ModResortsJndi")
   private DataSource dataSource;
+
+  private ModResortsCustomerInformation() {
+  }
+
+  public static synchronized ModResortsCustomerInformation getInstance() {
+    if (instance == null) {
+      instance = new ModResortsCustomerInformation();
+    }
+    return instance;
+  }
 
   public ArrayList<String> getCustomerInformation() {
     Connection conn = null;

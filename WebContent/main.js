@@ -344,3 +344,20 @@ function callAvailabilityChecker(dateObj, elem) {
     request.send();
 }
 window.callAvailabilityChecker = callAvailabilityChecker;
+
+// External event listeners replacing inline handlers (CSP compliance)
+document.addEventListener('DOMContentLoaded', function() {
+    var citySelect = document.getElementById('city-select');
+    if (citySelect) {
+        citySelect.addEventListener('change', function() {
+            callRESTAPI();
+        });
+    }
+
+    var reserveBtn = document.getElementById('reserve-btn');
+    if (reserveBtn) {
+        reserveBtn.addEventListener('click', function() {
+            confirmReservcation();
+        });
+    }
+});

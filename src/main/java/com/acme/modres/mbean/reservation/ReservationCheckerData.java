@@ -2,6 +2,7 @@ package com.acme.modres.mbean.reservation;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 import com.acme.modres.Constants;
 
@@ -25,7 +26,9 @@ public class ReservationCheckerData {
 
   public boolean setSelectedDate(String dateStr) {
     try {
-      selectedDate = new SimpleDateFormat(Constants.DATA_FORMAT).parse(dateStr);
+      SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATA_FORMAT);
+      sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+      selectedDate = sdf.parse(dateStr);
     } catch (Exception e) {
       return false;
     }
