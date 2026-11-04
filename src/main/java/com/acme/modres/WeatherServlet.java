@@ -49,7 +49,7 @@ public class WeatherServlet extends HttpServlet {
   // local OS environment variable key name. The key value should provide an API
   // key that will be used to
   // get weather information from site: http://www.wunderground.com
-  private static final String WEATHER_API_KEY = "WEATHER_API_KEY";
+  private static final String WEATHER_API_KEY = System.getenv().getOrDefault("WEATHER_API_KEY_ENV", "WEATHER_API_KEY");
 
   private static final Logger logger = Logger.getLogger(WeatherServlet.class.getName());
 
@@ -253,8 +253,8 @@ public class WeatherServlet extends HttpServlet {
 
     String serverEnv = "";
 
-    serverEnv += com.ibm.websphere.runtime.ServerName.getDisplayName();
-    serverEnv += com.ibm.websphere.runtime.ServerName.getFullName();
+    serverEnv += System.getenv("HOSTNAME");
+    serverEnv += System.getenv("SERVER_NAME");
 
     return serverEnv;
   }
@@ -263,8 +263,8 @@ public class WeatherServlet extends HttpServlet {
 
     Hashtable ht = new Hashtable();
 
-    ht.put("java.naming.factory.initial", "com.ibm.websphere.naming.WsnInitialContextFactory");
-    ht.put("java.naming.provider.url", "corbaloc:iiop:localhost:2809");
+    ht.put("java.naming.factory.initial", System.getenv().getOrDefault("JNDI_FACTORY", "com.sun.jndi.rmi.registry.RegistryContextFactory"));
+    ht.put("java.naming.provider.url", System.getenv().getOrDefault("JNDI_PROVIDER_URL", "localhost:1099"));
 
     InitialContext ctx = null;
     try {
