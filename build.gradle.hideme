@@ -19,7 +19,7 @@ dependencies {
 group = 'com.acme.modres'
 version = '2.0.0'
 description = 'modresorts'
-java.sourceCompatibility = JavaVersion.VERSION_1_8
+java.sourceCompatibility = JavaVersion.VERSION_11
 project.webAppDirName = 'WebContent'
 
 

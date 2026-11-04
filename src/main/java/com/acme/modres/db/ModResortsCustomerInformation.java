@@ -1,6 +1,5 @@
 package com.acme.modres.db;
 
-import javax.annotation.Resource;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.sql.DataSource;
