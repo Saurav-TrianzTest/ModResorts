@@ -1,0 +1,14 @@
+<configuration>
+  <root level="INFO">
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder>
+        <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+      </appender>
+    </appender>
+    <appender-ref ref="CONSOLE" />
+  </root>
+  <logger name="software.amazon.awssdk" level="WARN" />
+  <logger name="software.amazon.awssdk.request" level="WARN" />
+  <logger name="org.apache.http.wire" level="WARN" />
+  <logger name="org.apache.http.headers" level="WARN" />
+</configuration>

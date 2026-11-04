@@ -18,6 +18,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -49,7 +53,7 @@ public class WeatherServlet extends HttpServlet {
   // local OS environment variable key name. The key value should provide an API
   // key that will be used to
   // get weather information from site: http://www.wunderground.com
-  private static final String WEATHER_API_KEY = "WEATHER_API_KEY";
+  private static final String WEATHER_API_KEY_SECRET = "WEATHER_API_KEY_SECRET";
 
   private static final Logger logger = Logger.getLogger(WeatherServlet.class.getName());
 
@@ -106,7 +110,7 @@ public class WeatherServlet extends HttpServlet {
     String city = request.getParameter("selectedCity");
     logger.log(Level.FINE, "requested city is " + city);
 
-    String weatherAPIKey = System.getenv(WEATHER_API_KEY);
+    String weatherAPIKey = getWeatherApiKeyFromSecret();
     String mockedKey = mockKey(weatherAPIKey);
     logger.log(Level.FINE, "weatherAPIKey is " + mockedKey);
 
@@ -239,6 +243,25 @@ public class WeatherServlet extends HttpServlet {
       throws ServletException, IOException {
 
     doGet(request, response);
+  }
+
+  private String getWeatherApiKeyFromSecret() {
+    String secretName = System.getenv(WEATHER_API_KEY_SECRET);
+    if (secretName == null || secretName.trim().length() == 0) {
+      return null;
+    }
+    try {
+      SecretsManagerClient secretsClient = SecretsManagerClient.builder()
+          .build();
+      GetSecretValueRequest request = GetSecretValueRequest.builder()
+          .secretId(secretName)
+          .build();
+      GetSecretValueResponse response = secretsClient.getSecretValue(request);
+      return response.secretString();
+    } catch (SdkException e) {
+      logger.log(Level.SEVERE, "Failed to retrieve weather API key from AWS Secrets Manager", e);
+      return null;
+    }
   }
 
   private static String mockKey(String toBeMocked) {

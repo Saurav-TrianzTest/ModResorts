@@ -1,51 +1,50 @@
 package com.acme.modres.util;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import com.google.gson.Gson;
 
-public class JsonInputStream extends FileInputStream {
+public class JsonInputStream extends InputStream {
 
-  private File file;
+  private InputStream inputStream;
 
-  public JsonInputStream(File file) throws FileNotFoundException {
-    super(file);
-    this.file = file;
+  public JsonInputStream(InputStream inputStream) {
+    this.inputStream = inputStream;
   }
 
   public Object parseJsonAs(Class<?> cls) {
-    if (file.exists()) {
-      JsonInputStream is = null;
+    if (inputStream != null) {
       Object jsonObject = null;
       try {
-        is = new JsonInputStream(file);
         Gson gson = new Gson();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         jsonObject = gson.fromJson(reader, cls);
+        return jsonObject;
       } catch (Exception e) {
         e.printStackTrace();
       } catch (Throwable e) {
         e.printStackTrace();
-      } finally {
-        if (is != null) {
-          try {
-            is.close();
-            is.read(); // test if file is closed
-          } catch (IOException e) {
-            // closed successfully
-            return jsonObject;
-          } catch (Throwable e) {
-            e.printStackTrace();
-          }
-        }
       }
     }
     return null;
+  }
+
+  @Override
+  public int read() throws IOException {
+    if (inputStream != null) {
+      return inputStream.read();
+    }
+    return -1;
+  }
+
+  @Override
+  public void close() throws IOException {
+    if (inputStream != null) {
+      inputStream.close();
+    }
   }
 
 }

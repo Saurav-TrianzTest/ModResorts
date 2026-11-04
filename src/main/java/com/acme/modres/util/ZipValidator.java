@@ -1,29 +1,37 @@
 package com.acme.modres.util;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Enumeration;
+import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
-public class ZipValidator extends ZipFile {
+public class ZipValidator {
 
-  public ZipValidator(File file) throws ZipException, IOException {
-    super(file);
-    this.file = file;
+  private InputStream inputStream;
+
+  public ZipValidator(InputStream inputStream) {
+    this.inputStream = inputStream;
   }
 
-  private File file;
-
   public boolean isValid() throws Throwable {
-    if (file.exists()) {
-      ZipValidator zipFile = new ZipValidator(file);
-      Enumeration<? extends ZipEntry> entries = zipFile.entries();
-      if (!entries.hasMoreElements()) {
+    if (inputStream != null) {
+      ZipInputStream zipStream = null;
+      try {
+        zipStream = new ZipInputStream(inputStream);
+        ZipEntry entry = zipStream.getNextEntry();
+        if (entry == null) {
+          return true;
+        }
         return true;
+      } finally {
+        if (zipStream != null) {
+          try {
+            zipStream.close();
+          } catch (IOException e) {
+          }
+        }
       }
-      zipFile.close();
     }
     return false;
   }

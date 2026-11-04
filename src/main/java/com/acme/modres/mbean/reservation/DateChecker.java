@@ -1,7 +1,9 @@
 package com.acme.modres.mbean.reservation;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
@@ -22,13 +24,15 @@ public class DateChecker implements Runnable {
       Date selectedDate = data.getSelectedDate();
 
       try {
-        Date fromDate = new SimpleDateFormat(Constants.DATA_FORMAT).parse(reservation.getFromDate());
-        Date toDate = new SimpleDateFormat(Constants.DATA_FORMAT).parse(reservation.getToDate());
-        if (selectedDate.after(fromDate) && selectedDate.before(toDate)) {
+        LocalDate fromDate = LocalDate.parse(reservation.getFromDate(), DateTimeFormatter.ofPattern(Constants.DATA_FORMAT).withZone(ZoneOffset.UTC));
+        LocalDate toDate = LocalDate.parse(reservation.getToDate(), DateTimeFormatter.ofPattern(Constants.DATA_FORMAT).withZone(ZoneOffset.UTC));
+        Date fromDateAsDate = Date.from(fromDate.atStartOfDay(ZoneOffset.UTC).toInstant());
+        Date toDateAsDate = Date.from(toDate.atStartOfDay(ZoneOffset.UTC).toInstant());
+        if (selectedDate.after(fromDateAsDate) && selectedDate.before(toDateAsDate)) {
           data.setAvailablility(false);
           break;
         }
-      } catch (ParseException ex) {
+      } catch (Exception ex) {
         ex.printStackTrace();
       }
     }

@@ -1,8 +1,6 @@
 package com.acme.modres.db;
 
 import javax.annotation.Resource;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,14 +8,21 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-@Singleton
-@Startup
-public class ModResortsCustomerInformation {
+import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.InitializingBean;
+
+@Component
+public class ModResortsCustomerInformation implements InitializingBean {
   private static final String SELECT_CUSTOMERS_QUERY = "SELECT INFO FROM CUSTOMER";
 
   // Removing DB connection for ease of demo setup
   // @Resource(lookup = "jdbc/ModResortsJndi")
   private DataSource dataSource;
+
+  @Override
+  public void afterPropertiesSet() {
+    // Replaces EJB @Startup lifecycle callback
+  }
 
   public ArrayList<String> getCustomerInformation() {
     Connection conn = null;

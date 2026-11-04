@@ -344,3 +344,17 @@ function callAvailabilityChecker(dateObj, elem) {
     request.send();
 }
 window.callAvailabilityChecker = callAvailabilityChecker;
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (selectCity) {
+        selectCity.addEventListener('change', function(e) {
+            callRESTAPI();
+        });
+    }
+    var reserveBtn = document.getElementById('btn-reserve');
+    if (reserveBtn) {
+        reserveBtn.addEventListener('click', function(e) {
+            confirmReservcation();
+        });
+    }
+});
