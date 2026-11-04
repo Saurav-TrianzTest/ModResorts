@@ -1,51 +1,42 @@
 package com.acme.modres.util;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 
 import com.google.gson.Gson;
 
-public class JsonInputStream extends FileInputStream {
+public class JsonInputStream extends ByteArrayInputStream {
 
-  private File file;
+  private byte[] data;
 
-  public JsonInputStream(File file) throws FileNotFoundException {
-    super(file);
-    this.file = file;
+  public JsonInputStream(byte[] data) {
+    super(data);
+    this.data = data;
   }
 
   public Object parseJsonAs(Class<?> cls) {
-    if (file.exists()) {
-      JsonInputStream is = null;
-      Object jsonObject = null;
-      try {
-        is = new JsonInputStream(file);
-        Gson gson = new Gson();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        jsonObject = gson.fromJson(reader, cls);
-      } catch (Exception e) {
-        e.printStackTrace();
-      } catch (Throwable e) {
-        e.printStackTrace();
-      } finally {
-        if (is != null) {
-          try {
-            is.close();
-            is.read(); // test if file is closed
-          } catch (IOException e) {
-            // closed successfully
-            return jsonObject;
-          } catch (Throwable e) {
-            e.printStackTrace();
-          }
+    JsonInputStream is = null;
+    Object jsonObject = null;
+    try {
+      is = new JsonInputStream(data);
+      Gson gson = new Gson();
+      jsonObject = gson.fromJson(new java.io.InputStreamReader(is), cls);
+    } catch (Exception e) {
+      e.printStackTrace();
+    } catch (Throwable e) {
+      e.printStackTrace();
+    } finally {
+      if (is != null) {
+        try {
+          is.close();
+        } catch (Exception e) {
+          // closed successfully
+          return jsonObject;
         }
       }
     }
-    return null;
+    return jsonObject;
   }
 
 }

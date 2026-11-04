@@ -1,6 +1,8 @@
 package com.acme.modres.mbean.reservation;
 
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import com.acme.modres.Constants;
@@ -25,7 +27,8 @@ public class ReservationCheckerData {
 
   public boolean setSelectedDate(String dateStr) {
     try {
-      selectedDate = new SimpleDateFormat(Constants.DATA_FORMAT).parse(dateStr);
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.DATA_FORMAT).withZone(ZoneId.of("UTC"));
+      selectedDate = Date.from(LocalDate.parse(dateStr, formatter).atStartOfDay(ZoneId.of("UTC")).toInstant());
     } catch (Exception e) {
       return false;
     }

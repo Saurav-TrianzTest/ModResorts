@@ -1,18 +1,18 @@
 package com.acme.modres;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.List;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
 import javax.naming.InitialContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -26,6 +26,12 @@ import com.acme.modres.mbean.reservation.ReservationCheckerData;
 import com.acme.modres.mbean.reservation.Reservation;
 
 import com.acme.modres.util.ZipValidator;
+import com.azure.storage.blob.BlobClient;
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.identity.DefaultAzureCredentialBuilder;
+import com.azure.core.exception.AzureException;
 
 @WebServlet({ "/resorts/availability" })
 public class AvailabilityCheckerServlet extends HttpServlet {
@@ -59,17 +65,19 @@ public class AvailabilityCheckerServlet extends HttpServlet {
       List<Reservation> reservations = reservationCheckerData.getReservationList().getReservations();
       boolean isAvailible = true;
 
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.DATA_FORMAT).withZone(ZoneId.of("UTC"));
+
       for (Reservation reservation : reservations) {
         try {
-          Date fromDate = new SimpleDateFormat(Constants.DATA_FORMAT).parse(reservation.getFromDate());
-          Date toDate = new SimpleDateFormat(Constants.DATA_FORMAT).parse(reservation.getToDate());
+          Date fromDate = Date.from(LocalDate.parse(reservation.getFromDate(), formatter).atStartOfDay(ZoneId.of("UTC")).toInstant());
+          Date toDate = Date.from(LocalDate.parse(reservation.getToDate(), formatter).atStartOfDay(ZoneId.of("UTC")).toInstant());
           Date selectedDate = reservationCheckerData.getSelectedDate();
 
           if (selectedDate.after(fromDate) && selectedDate.before(toDate)) {
             isAvailible = false;
             break;
           }
-        } catch (ParseException ex) {
+        } catch (Exception ex) {
           ex.printStackTrace();
         }
       }
@@ -100,38 +108,45 @@ public class AvailabilityCheckerServlet extends HttpServlet {
   }
 
   protected int exportRevervations(String selectedDateStr) {
-    File fileToZip = IOUtils.getFileFromRelativePath("reservations.json");
-    String userDirectory = System.getProperty("user.home");
-    String zipPath = userDirectory + "/reservations.zip";
+    byte[] fileToZip = IOUtils.getBytesFromRelativePath("reservations.json");
+    String blobName = "reservations-" + System.currentTimeMillis() + ".zip";
 
-    FileOutputStream fos;
     try {
-      fos = new FileOutputStream(zipPath);
-      ZipOutputStream zipOut = new ZipOutputStream(fos);
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      try (ZipOutputStream zipOut = new ZipOutputStream(baos)) {
+        ZipEntry zipEntry = new ZipEntry("reservations.json");
+        zipOut.putNextEntry(zipEntry);
 
-      FileInputStream fis = new FileInputStream(fileToZip);
-      ZipEntry zipEntry = new ZipEntry(fileToZip.getName());
-      zipOut.putNextEntry(zipEntry);
-
-      byte[] bytes = new byte[1024];
-      int length;
-      while ((length = fis.read(bytes)) >= 0) {
-        zipOut.write(bytes, 0, length);
+        zipOut.write(fileToZip);
+        zipOut.closeEntry();
       }
-      fis.close();
 
-      zipOut.close();
-      fos.close();
+      byte[] zipData = baos.toByteArray();
+
+      // Upload zip to Azure Blob Storage
+      String storageEndpoint = System.getenv("AZURE_STORAGE_ENDPOINT");
+      if (storageEndpoint == null || storageEndpoint.trim().length() == 0) {
+        return -1;
+      }
+
+      BlobServiceClient serviceClient = new BlobServiceClientBuilder()
+          .endpoint(storageEndpoint)
+          .credential(new DefaultAzureCredentialBuilder().build())
+          .buildClient();
+
+      BlobContainerClient containerClient = serviceClient.getBlobContainerClient("exports");
+      BlobClient blobClient = containerClient.getBlobClient(blobName);
+      blobClient.upload(new ByteArrayInputStream(zipData), zipData.length, true);
 
       // verify zip
-      ZipValidator zipValidator = new ZipValidator(new File(zipPath));
+      ZipValidator zipValidator = new ZipValidator(zipData);
       if (zipValidator.isValid()) {
         return 0;
       }
-    } catch (FileNotFoundException e) {
+    } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-    } catch (IOException e) {
+    } catch (AzureException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     } catch (Throwable e) {

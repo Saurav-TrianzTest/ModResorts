@@ -1,51 +1,48 @@
 package com.acme.modres.mbean;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 import com.acme.modres.mbean.reservation.ReservationList;
 import com.acme.modres.util.JsonInputStream;
 
 public final class IOUtils {
 
-  public static File getFileFromRelativePath(String path) {
-    File file = null;
+  public static byte[] getBytesFromRelativePath(String path) {
     InputStream initialStream = null;
-    OutputStream outStream = null;
+    ByteArrayOutputStream buffer = null;
     try {
       initialStream = IOUtils.class.getClassLoader().getResourceAsStream(path);
-      byte[] buffer = new byte[initialStream.available()];
-      initialStream.read(buffer);
-
-      file = File.createTempFile(path, null);
-      outStream = new FileOutputStream(file);
-      outStream.write(buffer);
-      outStream.close();
+      if (initialStream == null) {
+        return null;
+      }
+      buffer = new ByteArrayOutputStream();
+      byte[] data = new byte[1024];
+      int length;
+      while ((length = initialStream.read(data)) >= 0) {
+        buffer.write(data, 0, length);
+      }
+      return buffer.toByteArray();
     } catch (Exception e) {
       e.printStackTrace();
+      return null;
     } finally {
       if (initialStream != null) {
         try {
           initialStream.close();
         } catch (IOException e) {
         }
-      } else if (outStream != null) {
-        try {
-          outStream.close();
-        } catch (IOException e) {
-        }
       }
     }
-
-    return file;
   }
 
   public static OpMetadataList getOpListFromConfig() {
-    File file = getFileFromRelativePath("ops.json"); // fix hardcoded paths
-    try (JsonInputStream is = new JsonInputStream(file)) {
+    byte[] data = getBytesFromRelativePath("ops.json");
+    if (data == null) {
+      return null;
+    }
+    try (JsonInputStream is = new JsonInputStream(data)) {
       OpMetadataList opList = new OpMetadataList(); // empty default
       opList = (OpMetadataList) is.parseJsonAs(OpMetadataList.class);
       return opList;
@@ -56,8 +53,11 @@ public final class IOUtils {
   }
 
   public static ReservationList getReservationListFromConfig() {
-    File file = getFileFromRelativePath("reservations.json"); // fix hardcoded paths
-    try (JsonInputStream is = new JsonInputStream(file)) {
+    byte[] data = getBytesFromRelativePath("reservations.json");
+    if (data == null) {
+      return null;
+    }
+    try (JsonInputStream is = new JsonInputStream(data)) {
       ReservationList reservationList = new ReservationList(); // empty default
       reservationList = (ReservationList) is.parseJsonAs(ReservationList.class);
       return reservationList;
