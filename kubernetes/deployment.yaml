@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: modresortsconatinr
+  namespace: modresortsconatinr
+  labels:
+    app: modresortsconatinr
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: modresortsconatinr
+  template:
+    metadata:
+      labels:
+        app: modresortsconatinr
+    spec:
+      containers:
+        - name: modresortsconatinr
+          image: "{{IMAGE_URI}}"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: JAVA_OPTS
+              value: "-Xmx512m -Xms256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+            - name: JAVA_NAMING_FACTORY_INITIAL
+              value: "{{JAVA_NAMING_FACTORY_INITIAL}}"
+            - name: JAVA_NAMING_PROVIDER_URL
+              value: "{{JAVA_NAMING_PROVIDER_URL}}"
+            - name: DATASOURCE_JNDI
+              value: "{{DATASOURCE_JNDI}}"
+            - name: WEATHER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: modresortsconatinr-secrets
+                  key: weather-api-key
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5

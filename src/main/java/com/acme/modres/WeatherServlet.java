@@ -1,6 +1,5 @@
 package com.acme.modres;
 
-import com.acme.modres.db.ModResortsCustomerInformation;
 import com.acme.modres.exception.ExceptionHandler;
 import com.acme.modres.mbean.AppInfo;
 
@@ -23,7 +22,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import javax.inject.Inject;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.InstanceNotFoundException;
 import javax.management.IntrospectionException;
@@ -43,13 +41,10 @@ import javax.servlet.annotation.WebServlet;
 public class WeatherServlet extends HttpServlet {
   private static final long serialVersionUID = 1L;
 
-  @Inject
-  private ModResortsCustomerInformation customerInfo;
-
   // local OS environment variable key name. The key value should provide an API
   // key that will be used to
   // get weather information from site: http://www.wunderground.com
-  private static final String WEATHER_API_KEY = "WEATHER_API_KEY";
+  private static final String WEATHER_API_KEY = System.getenv().getOrDefault("WEATHER_API_KEY_ENV", "WEATHER_API_KEY");
 
   private static final Logger logger = Logger.getLogger(WeatherServlet.class.getName());
 
@@ -253,8 +248,8 @@ public class WeatherServlet extends HttpServlet {
 
     String serverEnv = "";
 
-    serverEnv += com.ibm.websphere.runtime.ServerName.getDisplayName();
-    serverEnv += com.ibm.websphere.runtime.ServerName.getFullName();
+    serverEnv += System.getenv("SERVER_DISPLAY_NAME");
+    serverEnv += System.getenv("SERVER_FULL_NAME");
 
     return serverEnv;
   }
@@ -263,8 +258,15 @@ public class WeatherServlet extends HttpServlet {
 
     Hashtable ht = new Hashtable();
 
-    ht.put("java.naming.factory.initial", "com.ibm.websphere.naming.WsnInitialContextFactory");
-    ht.put("java.naming.provider.url", "corbaloc:iiop:localhost:2809");
+    String jndiFactory = System.getenv("JAVA_NAMING_FACTORY_INITIAL");
+    if (jndiFactory != null && jndiFactory.trim().length() > 0) {
+      ht.put("java.naming.factory.initial", jndiFactory);
+    }
+
+    String providerUrl = System.getenv("JAVA_NAMING_PROVIDER_URL");
+    if (providerUrl != null && providerUrl.trim().length() > 0) {
+      ht.put("java.naming.provider.url", providerUrl);
+    }
 
     InitialContext ctx = null;
     try {

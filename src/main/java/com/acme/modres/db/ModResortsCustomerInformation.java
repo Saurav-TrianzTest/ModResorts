@@ -1,8 +1,6 @@
 package com.acme.modres.db;
 
 import javax.annotation.Resource;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,14 +8,25 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-@Singleton
-@Startup
 public class ModResortsCustomerInformation {
   private static final String SELECT_CUSTOMERS_QUERY = "SELECT INFO FROM CUSTOMER";
 
   // Removing DB connection for ease of demo setup
   // @Resource(lookup = "jdbc/ModResortsJndi")
   private DataSource dataSource;
+
+  public ModResortsCustomerInformation() {
+    // DataSource is resolved from the environment at runtime, not held as singleton state
+    String dataSourceJndi = System.getenv("DATASOURCE_JNDI");
+    if (dataSourceJndi != null && dataSourceJndi.trim().length() > 0) {
+      try {
+        javax.naming.InitialContext ctx = new javax.naming.InitialContext();
+        this.dataSource = (DataSource) ctx.lookup(dataSourceJndi);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
 
   public ArrayList<String> getCustomerInformation() {
     Connection conn = null;
