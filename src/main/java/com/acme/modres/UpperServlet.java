@@ -2,14 +2,14 @@ package com.acme.modres;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.ibm.websphere.servlet.response.ResponseUtils;
 
 @WebServlet("/resorts/upper")
 public class UpperServlet extends HttpServlet {
@@ -26,7 +26,11 @@ public class UpperServlet extends HttpServlet {
     }
 
     String newStr = originalStr.toUpperCase();
-    newStr = ResponseUtils.encodeDataString(newStr);
+    try {
+      newStr = URLEncoder.encode(newStr, "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      // UTF-8 is always supported
+    }
 
     PrintWriter out = response.getWriter();
     out.print("<br/><b>upper case input " + newStr + "</b>");
