@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  modresorts:
+    image: modresorts:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - WEATHER_API_KEY=${WEATHER_API_KEY:?set WEATHER_API_KEY}
+      - CUSTOMER_INFO=${CUSTOMER_INFO:?set CUSTOMER_INFO}
+      - JNDI_FACTORY=${JNDI_FACTORY}
+      - JNDI_PROVIDER_URL=${JNDI_PROVIDER_URL}
+      - HOSTNAME=${HOSTNAME}
+      - SERVER_NAME=${SERVER_NAME}
+    volumes:
+      - ./WebContent:/opt/tomcat/webapps/modresorts

@@ -1,8 +1,6 @@
 package com.acme.modres.db;
 
 import javax.annotation.Resource;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,11 +8,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-@Singleton
-@Startup
 public class ModResortsCustomerInformation {
   private static final String SELECT_CUSTOMERS_QUERY = "SELECT INFO FROM CUSTOMER";
 
+  // Externalize singleton state: read customer information from an
+  // environment variable so all EKS pod replicas share the same data
+  // instead of holding state in JVM heap memory
   // Removing DB connection for ease of demo setup
   // @Resource(lookup = "jdbc/ModResortsJndi")
   private DataSource dataSource;
@@ -26,17 +25,27 @@ public class ModResortsCustomerInformation {
     ArrayList<String> customerInfo = new ArrayList<>();
 
     try {
-      // Get a connection from the injected data source
-      conn = dataSource.getConnection();
-      // Create a prepared statement
-      stmt = conn.prepareStatement(SELECT_CUSTOMERS_QUERY);
-      // Execute the query
-      rs = stmt.executeQuery();
+      // Externalize singleton state: read customer information from an
+      // environment variable so all EKS pod replicas share the same data
+      String envCustomerInfo = System.getenv("CUSTOMER_INFO");
+      if (envCustomerInfo != null && envCustomerInfo.trim().length() > 0) {
+        for (String info : envCustomerInfo.split(",")) {
+          customerInfo.add(info.trim());
+        }
+      }
+      if (customerInfo.isEmpty() && dataSource != null) {
+        // Get a connection from the injected data source
+        conn = dataSource.getConnection();
+        // Create a prepared statement
+        stmt = conn.prepareStatement(SELECT_CUSTOMERS_QUERY);
+        // Execute the query
+        rs = stmt.executeQuery();
 
-      // Process the results
-      while (rs.next()) {
-        String info = rs.getString("INFO");
-        customerInfo.add(info);
+        // Process the results
+        while (rs.next()) {
+          String info = rs.getString("INFO");
+          customerInfo.add(info);
+        }
       }
 
     } catch (SQLException e) {

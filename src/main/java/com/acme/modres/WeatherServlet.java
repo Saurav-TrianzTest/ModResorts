@@ -253,8 +253,10 @@ public class WeatherServlet extends HttpServlet {
 
     String serverEnv = "";
 
-    serverEnv += com.ibm.websphere.runtime.ServerName.getDisplayName();
-    serverEnv += com.ibm.websphere.runtime.ServerName.getFullName();
+    // Portable replacement for WebSphere ServerName.getDisplayName/getFullName:
+    // read the server environment from environment variables
+    serverEnv += System.getenv("HOSTNAME");
+    serverEnv += System.getenv("SERVER_NAME");
 
     return serverEnv;
   }
@@ -263,8 +265,10 @@ public class WeatherServlet extends HttpServlet {
 
     Hashtable ht = new Hashtable();
 
-    ht.put("java.naming.factory.initial", "com.ibm.websphere.naming.WsnInitialContextFactory");
-    ht.put("java.naming.provider.url", "corbaloc:iiop:localhost:2809");
+    // Portable JNDI configuration: read from environment variables instead of
+    // hard-coded WebSphere naming factory and CORBA URL
+    ht.put("java.naming.factory.initial", System.getenv("JNDI_FACTORY"));
+    ht.put("java.naming.provider.url", System.getenv("JNDI_PROVIDER_URL"));
 
     InitialContext ctx = null;
     try {
