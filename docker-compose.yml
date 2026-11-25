@@ -1,0 +1,23 @@
+services:
+  containersanity:
+    image: containersanity:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: containersanity
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      SPRING_PROFILES_ACTIVE: "${SPRING_PROFILES_ACTIVE:-prod}"
+      # the weather API key is a credential: taken from the shell that runs compose
+      WEATHER_API_KEY: "${WEATHER_API_KEY:?set WEATHER_API_KEY}"
+      # optional JNDI lookup settings (empty = not used)
+      JNDI_INITIAL_CONTEXT_FACTORY: "${JNDI_INITIAL_CONTEXT_FACTORY:-}"
+      JNDI_PROVIDER_URL: "${JNDI_PROVIDER_URL:-}"
+    volumes:
+      - containersanity-logs:/app/logs
+    restart: unless-stopped
+
+volumes:
+  containersanity-logs:
